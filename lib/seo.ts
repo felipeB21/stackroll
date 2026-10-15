@@ -53,7 +53,9 @@ export const siteMetadata: Metadata = {
       "max-snippet": -1,
     },
   },
-  // verification: { google: "TU_CODIGO_DE_SEARCH_CONSOLE" },
+  verification: {
+    google: "rolZYJXatxhXMHyqO_WA1SF6QyOOy-3RXl7zwMuxQnw",
+  },
 };
 
 export const siteViewport: Viewport = {
