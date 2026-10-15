@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { api } from "@/lib/client";
 import { Typing } from "@/components/loading-ui/typing";
 import Rerrol from "@/components/rerrol";
+import GithubStars from "@/components/github-stars";
 
 async function Idea() {
   const { data, error } = await api.get();
@@ -48,6 +49,7 @@ async function Idea() {
 export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-4 p-6 text-center">
+      <GithubStars />
       <h1 className="text-foreground text-2xl max-w-sm mb-12">
         Stackroll: random framework & project idea generator
       </h1>
