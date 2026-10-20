@@ -1,47 +1,34 @@
+// app/page.tsx
 import { Suspense } from "react";
+import { connection } from "next/server";
 import { api } from "@/lib/client";
+import { frameworks, pick, type Framework } from "@/lib/frameworks";
 import { Typing } from "@/components/loading-ui/typing";
-import Rerrol from "@/components/rerrol";
 import GithubStars from "@/components/github-stars";
+import { Idea } from "@/components/idea";
 
-async function Idea() {
-  const { data, error } = await api.get();
+async function IdeaLoader({ framework }: { framework: Framework }) {
+  const { data, error } = await api.get({ query: { framework } });
 
-  if (error) {
-    return (
-      <>
-        <p>Something went wrong. Try again.</p>
-        <Rerrol />
-      </>
-    );
-  }
+  if (error) return <p>Something went wrong. Try again.</p>;
+
+  return <Idea idea={data.idea} tools={data.tools} />;
+}
+
+async function Roll() {
+  await connection();
+  const framework = pick(frameworks);
 
   return (
     <>
-      <span className="text-muted-foreground">Make a project with</span>
-      <h2 className="text-9xl">{data.framework}</h2>
-      <p className="max-w-2xl text-xl">{data.idea}</p>
-      <div className="mt-5 flex items-center flex-col gap-3">
-        <h3 className="text-sm uppercase tracking-wide font-bold">
-          *Optional extras*
-        </h3>
-        <ul className="flex flex-wrap justify-center gap-3">
-          {data.tools.map((tool) => (
-            <li
-              key={tool.name}
-              className="flex max-w-56 flex-col items-center gap-1"
-            >
-              <span className="bg-accent/50 rounded-full px-3 py-1 text-sm">
-                {tool.name}
-              </span>
-              <span className="text-muted-foreground text-xs">
-                {tool.reason}
-              </span>
-            </li>
-          ))}
-        </ul>
+      <div>
+        <span className="text-muted-foreground">Make a project with</span>
+        <h2 className="text-9xl">{framework}</h2>
       </div>
-      <Rerrol />
+
+      <Suspense fallback={<Typing />}>
+        <IdeaLoader framework={framework} />
+      </Suspense>
     </>
   );
 }
@@ -54,8 +41,8 @@ export default function Home() {
         Stackroll: random framework & project idea generator
       </h1>
 
-      <Suspense fallback={<Typing className="w-5" />}>
-        <Idea />
+      <Suspense fallback={<div className="h-40" />}>
+        <Roll />
       </Suspense>
 
       <section className="text-muted-foreground mt-12 max-w-xl text-sm">
