@@ -16,7 +16,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={cn("dark h-full antialiased", geistPixel.className)}
     >
-      <body className="flex min-h-full flex-col font-sans">
+      <body className="flex min-h-full flex-col">
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
