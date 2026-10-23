@@ -1,33 +1,84 @@
-// app/page.tsx
 import { Suspense } from "react";
 import { connection } from "next/server";
-import { api } from "@/lib/client";
 import { frameworks, pick, type Framework } from "@/lib/frameworks";
+import { domains, getIdea } from "@/lib/ideas";
 import { Typing } from "@/components/loading-ui/typing";
 import GithubStars from "@/components/github-stars";
 import { Idea } from "@/components/idea";
+import Link from "next/link";
 
-async function IdeaLoader({ framework }: { framework: Framework }) {
-  const { data, error } = await api.get({ query: { framework } });
+async function IdeaLoader({
+  framework,
+  domain,
+}: {
+  framework: Framework;
+  domain: string;
+}) {
+  let ideaData;
+  try {
+    ideaData = await getIdea(framework, domain);
+  } catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : String(err);
 
-  if (error) return <p>Something went wrong. Try again.</p>;
+    const isQuotaExceeded =
+      errorMessage.includes("quota") || errorMessage.includes("exceeded");
 
-  return <Idea idea={data.idea} tools={data.tools} />;
+    const isRateLimit = errorMessage.includes("Rate limit");
+
+    return (
+      <div className="mx-auto max-w-md rounded-lg border border-red-500/20 bg-red-500/10 p-4 text-muted-foreground">
+        {isQuotaExceeded ? (
+          <>
+            <p className="font-semibold text-foreground mb-1">
+              API Quota Exceeded!
+            </p>
+            <p className="text-xs mb-3">
+              You have reached the daily free tier limit for the Google Gemini
+              API. Please wait for your quota to reset or upgrade your plan.
+            </p>
+          </>
+        ) : isRateLimit ? (
+          <p className="text-xs mb-3">
+            You are rolling too fast! Please wait a few seconds before trying
+            again.
+          </p>
+        ) : (
+          <p className="text-xs mb-3">
+            Could not generate an idea this time. Please try again.
+          </p>
+        )}
+
+        <Link
+          href="/"
+          className="text-foreground underline text-sm font-medium"
+        >
+          Roll again
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <Idea idea={ideaData.idea} tools={ideaData.optionalTools.slice(0, 4)} />
+  );
 }
 
 async function Roll() {
   await connection();
   const framework = pick(frameworks);
+  const domain = pick(domains);
 
   return (
     <>
       <div>
-        <span className="text-muted-foreground">Make a project with</span>
+        <span className="text-muted-foreground text-xl">
+          Make a project with
+        </span>
         <h2 className="text-9xl">{framework}</h2>
       </div>
 
-      <Suspense fallback={<Typing />}>
-        <IdeaLoader framework={framework} />
+      <Suspense fallback={<Typing className="text-muted-foreground" />}>
+        <IdeaLoader framework={framework} domain={domain} />
       </Suspense>
     </>
   );
